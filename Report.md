@@ -8,14 +8,16 @@
 ## 題目：象棋翻棋遊戲
 
 ## 設計方法概述
-* Chess：\
-封裝棋子的屬性：名稱、權重、陣營、位置、是否翻開。(因為設計了只能吃明棋的規則)
+* Chess： 
+  * 封裝棋子的屬性：名稱、權重階級、陣營(0：紅方、1：黑方)、位置、是否翻開(設計了只能吃明棋的規則)。
 
-* ChessGame：\
-負責核心邏輯，包含棋盤初始化(包含打亂棋子初始位置、移動合法性判定、吃子規則(本遊戲設計砲/炮可藉由隔一棋無視棋子階級吃敵方任何棋子)。
+* ChessGame：
+  * 棋盤初始化(打亂棋子初始位置)
+  * 移動合法性判定
+  * 吃子規則(本遊戲設計砲/炮可藉由隔一棋無視棋子階級吃敵方任何棋子)。
 
-* Main：\
-處理使用者輸入與遊戲流程控制。
+* Main：
+  * 使用者輸入與遊戲流程控制。
 ## 程式、執行畫面及其說明
 AbstractGame 程式如下：
 
@@ -64,12 +66,16 @@ class ChessGame extends AbstractGame {
     int Player1_side = -1;
     int turn = 0;
 ```
+setPlayer 程式如下：
 ```java
     public void setPlayers(String Player1, String Player2) {
         System.out.println("遊戲開始！" + '\n' + Player1 + " vs " + Player2);
     }
 ```
-![](img/image.png)
+![](img/img_1.png)
+
+gameOver 程式如下：\
+只要把另一方的棋子吃完即可獲勝。
 ```java
     public boolean gameOver() {
         int red = 0;
@@ -91,7 +97,10 @@ class ChessGame extends AbstractGame {
         }
         return false;
     }
-
+```
+move 程式如下：\
+處理吃棋子後，原本位置應該要變空格位置，在原位置新創一個空地物件。
+```java
     public boolean move(int now_location, int target_location) {
         if (!board[target_location].name.equals("＿")) System.out.println(((board[now_location].side == 0) ? "(紅方) " : "(黑方) ") + board[now_location].name + " 吃掉 " + ((board[target_location].side == 0) ? "(紅方) " : "(黑方) ") + board[target_location].name);
         board[target_location] = board[now_location];
@@ -99,7 +108,12 @@ class ChessGame extends AbstractGame {
         board[now_location].isOpened = true; // 因為new，isOpened != true就會被顯示 X
         return true;
     }
+```
+![](img/img_2.png)
 
+showAllChess 程式如下：\
+顯示當前棋局。
+```java
     public void showAllChess() {
         char row = 'A';
         System.out.println("\t 1\t 2\t 3\t 4\t 5\t 6\t 7\t 8");
@@ -113,7 +127,12 @@ class ChessGame extends AbstractGame {
         }
         System.out.println();
     }
+```
+![](img/img_3.png)
 
+generateChess 程式如下：\
+創建32個棋子物件，加入到陣列中，透過函式將陣列順序打亂。
+```java
     public void generateChess() {
         ArrayList<Chess> allList = new ArrayList<>();
 
@@ -152,7 +171,11 @@ class ChessGame extends AbstractGame {
             board[i].location = i;
         }
     }
-
+```
+countBetweenChess 程式如下：\
+本遊戲設置砲/炮只能移動至相鄰空格位置，如要吃子，必須恰好隔一個棋子才可以吃子。
+透過這個方法計算砲/炮與欲吃的子之間的棋子數，藉此判斷吃子行為是否合法。
+```java
     // 選擇砲/炮吃棋子，中間需隔一個棋子
     public int countBetweenChess(int now_location, int target_location) {
         int chessCount = 0;
@@ -177,12 +200,19 @@ class ChessGame extends AbstractGame {
         }
         return chessCount;
     }
-
+```
+nextTurn 程式如下：
+切換回合之作用。
+```java
     // 切換回合
     public void nextTurn() {
         turn = (turn == 0) ? 1 : 0;
     }
-
+```
+eat 程式如下：\
+處理吃子的行為，在主程式已通過一定的選擇規則，此方法中根據攻擊方和被攻擊方的權重階級，判斷攻擊方是否能吃掉被攻擊方。\
+另外寫了砲/炮的吃子及移動規則。
+```java
     public boolean eat(int now_location, int target_location ) {
         Chess attacker = board[now_location];
         Chess target = board[target_location];
@@ -230,7 +260,10 @@ class ChessGame extends AbstractGame {
             return false;
         }
     }
+```
+![](img/img_4.png)
 
+```java
     // 確認欲吃掉的棋子是否為我方
     public boolean checkSameSide(int origin_loc, int target_loc) {
 
@@ -244,7 +277,10 @@ class ChessGame extends AbstractGame {
         }
         else return true; // 有效目的位置，可移動
     }
-
+```
+caltarget 程式如下：\
+計算目標位置在陣列中的位置。
+```java
     // 將輸入的目標移動位置轉成整數型態
     public int caltarget(String location) {
         int row = location.charAt(0) - 'A';
@@ -253,7 +289,10 @@ class ChessGame extends AbstractGame {
 
         return index;
     }
-
+```
+colorSide 程式如下：\
+提醒使用者目前輪到哪一方。
+```java
     public String colorSide() {
         String color = " ";
         if (Player1_side == 0) color = "(紅方)";
@@ -263,9 +302,9 @@ class ChessGame extends AbstractGame {
         return color;
     }
 }
-
-
 ```
+Main 程式如下：\
+負責遊戲流程以及少量棋子移動、選擇規則。
 ```java
 package org.example;
 
@@ -374,21 +413,32 @@ public class Main {
         }
     }
 }
-
 ```
-
-每一次，i 的值會變化。執行的畫面如下：
-
-![](img/image.png)
+![](img/img_5.png)
 
 # AI 使用狀況與心得
 
-使用層級：
+* 使用層級：\
 (層級3) 一開始就使用，搭配局部的自己撰寫
 
-概述和 AI 互動的次數與內容：
-除錯、功能提升、學習、prompt 設計
-你手動(沒有用AI)的部份
+
+* 概述和 AI 互動的次數與內容：\
+和 AI 的互動次數大約為 24 次，因為對暗棋規則的不熟悉，先詢問 AI 該怎麼開頭，然後一步一步根據 AI 的意見和課本講義寫本遊戲。\
+在測試過程中也透過 AI 除錯迅速找到漏洞部分，最後遊戲一定程度完整後，詢問 AI 本遊戲是否還存在漏洞。
+
+
+* 你手動(沒有用AI)的部份
+  * showAllChess
+  * checkSameSide
+  * colorSide
+  * 普通棋子吃棋
+  * 主程式遊戲流程
 
 ## 心得
-我學到的迴圈的使用。
+在實作的過程中，AI 最大的幫助在於引導我如何運用 OOP 。原本我習慣將所有邏輯塞在 Main 裡面，但透過與 AI 討論，我學會了將棋子的屬性(Chess)與遊戲規則(ChessGame)拆分，並利用抽象類別 AbstractGame 來規範遊戲的基本行為。
+
+而在使用 AI 也幫我省下了一些簡單計算的程式，像是計算棋子間的棋子數、棋子的產生等基礎程式。
+
+但同時 AI 也並不是完全正確的，當我們下達的指令不夠嚴謹明確的話，就可能會給我們一些不太正確的回覆，在寫棋子的選擇以及移動或吃子目標位置時，AI 所提供參考的程式就有點錯亂，導致棋子能隨意移動等情況發生，所以只能親自在經過反覆測試和修改才能讓本遊戲有序地進行。
+
+透過此次作業，讓我更加了解物件導向，更加熟悉 Java 的基礎使用。
